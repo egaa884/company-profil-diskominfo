@@ -24,8 +24,6 @@
   </div>
 </template>
 
-// sadnasdnisd
-
 
 <script setup>
 import { ref } from 'vue'; // Hapus onMounted/onUnmounted jika tidak perlu
