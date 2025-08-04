@@ -1,0 +1,36 @@
+// src/router/index.js
+import { createRouter, createWebHistory } from "vue-router";
+import Home from "@/views/Home.vue";
+import AdminDashboard from "@/views/AdminDashboard.vue";
+import Beritakominfo from "@/views/Beritakominfo.vue";
+import Profil from "@/views/Profil.vue";
+
+const routes = [
+  {
+    path: "/home",
+    name: "home",
+    component: Home,
+  },
+  {
+    path: "/admin/dashboard",
+    name: "admin.dashboard",
+    component: AdminDashboard,
+  },
+  {
+    path: "/berita",
+    name: "berita",
+    component: Beritakominfo,
+  },
+  {
+    path: "/profil",
+    name: "profil",
+    component: Profil,
+  },
+];
+
+const router = createRouter({
+  history: createWebHistory(),
+  routes,
+});
+
+export default router;
