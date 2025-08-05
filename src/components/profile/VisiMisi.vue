@@ -7,13 +7,30 @@
         </h2>
       </div>
 
-      <div class="flex flex-col md:flex-row justify-center items-center gap-8 max-w-4xl mx-auto">
+      <!-- Loading state -->
+      <div v-if="loading" class="flex flex-col md:flex-row justify-center items-center gap-8 max-w-4xl mx-auto">
+        <div class="bg-blue-900 rounded-xl p-6 shadow-lg md:w-64 w-full h-64 animate-pulse">
+          <div class="w-48 h-48 bg-blue-800 rounded mx-auto"></div>
+        </div>
+        <div class="bg-gray-100 rounded-xl p-6 shadow-lg md:w-64 w-full h-64 animate-pulse">
+          <div class="w-48 h-48 bg-gray-200 rounded mx-auto"></div>
+        </div>
+      </div>
 
+      <!-- Content -->
+      <div v-else class="flex flex-col md:flex-row justify-center items-center gap-8 max-w-4xl mx-auto">
         <div class="visi-card bg-blue-900 rounded-xl p-6 shadow-lg transition-all duration-500 hover:scale-105 relative overflow-hidden
                     flex items-center justify-end md:w-64 w-full h-auto min-height-[25rem]
                     hover:w-96 md:hover:w-[32rem] lg:hover:w-[36rem]">
           
           <img
+            v-if="profilData?.gambar"
+            :src="getImageUrl(profilData.gambar)"
+            alt="Visi"
+            class="w-48 h-48 flex-shrink-0"
+          />
+          <img
+            v-else
             src="@/assets/img/visi.png"
             alt="Visi"
             class="w-48 h-48 flex-shrink-0"
@@ -25,7 +42,8 @@
               <div class="mb-12">
                 <img src="../../assets/img/Idea.png" alt="lampu">
               </div>
-              <div class="text-white space-y-1">
+              <div class="text-white space-y-1" v-if="profilData?.konten" v-html="profilData.konten"></div>
+              <div v-else class="text-white space-y-1">
                 <p class="text-lg font-semibold">Terwujudnya</p>
                 <p class="text-lg font-semibold">Pemerintahan</p>
                 <p class="text-lg font-semibold">Bersih Berwibawa</p>
@@ -89,8 +107,42 @@
 </template>
 
 <script>
+import { profilService } from '@/service/api.js'
+
 export default {
-  name: 'VisiMisi'
+  name: 'VisiMisi',
+  data() {
+    return {
+      profilData: null,
+      loading: false
+    }
+  },
+  async mounted() {
+    await this.fetchProfilData()
+  },
+  methods: {
+    async fetchProfilData() {
+      try {
+        this.loading = true
+        const response = await profilService.getProfilByCategory('visi-misi')
+        this.profilData = response.data
+      } catch (error) {
+        console.error('Error fetching visi misi data:', error)
+        this.profilData = null
+      } finally {
+        this.loading = false
+      }
+    },
+    getImageUrl(imagePath) {
+      if (!imagePath) return null
+      // If it's already a full URL, return as is
+      if (imagePath.startsWith('http')) {
+        return imagePath
+      }
+      // Otherwise, construct the full URL
+      return `http://localhost:8000/storage/${imagePath}`
+    }
+  }
 }
 </script>
 

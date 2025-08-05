@@ -2,19 +2,47 @@
   <section class="news-section">
     <div class="container">
       <h2 class="section-title">Berita Terkini</h2>
-      <div class="news-grid">
-        <div
-          v-for="(news, index) in newsItems"
-          :key="index"
-          class="news-card"
-          :class="{ 'is-visible': news.isVisible }"
-          :style="{ 'transition-delay': news.delay }">
-          <img :src="news.image" :alt="news.alt" class="news-image" />
+      
+      <!-- Loading state -->
+      <div v-if="loading" class="news-grid">
+        <div v-for="i in 3" :key="i" class="news-card animate-pulse">
+          <div class="news-image bg-gray-300"></div>
           <div class="news-content">
-            <h3 class="news-title">{{ news.title }}</h3>
-            <p class="news-date">{{ news.date }}</p>
+            <div class="h-4 bg-gray-300 rounded mb-2"></div>
+            <div class="h-3 bg-gray-300 rounded w-1/2"></div>
           </div>
         </div>
+      </div>
+      
+      <!-- News content -->
+      <div v-else-if="newsItems.length > 0" class="news-grid">
+        <div
+          v-for="(news, index) in newsItems"
+          :key="news.id || index"
+          class="news-card"
+          :class="{ 'is-visible': news.isVisible }"
+          :style="{ 'transition-delay': news.delay }"
+          @click="handleNewsClick(news)">
+          <img 
+            v-if="news.gambar" 
+            :src="getImageUrl(news.gambar)" 
+            :alt="news.judul" 
+            class="news-image" 
+          />
+          <div v-else class="news-image bg-gray-300 flex items-center justify-center">
+            <span class="text-gray-500 text-sm">No Image</span>
+          </div>
+          <div class="news-content">
+            <h3 class="news-title">{{ news.judul }}</h3>
+            <p class="news-date">{{ formatDate(news.created_at) }}</p>
+            <p v-if="news.category" class="news-category">{{ news.category }}</p>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Empty state -->
+      <div v-else class="text-center py-8">
+        <p class="text-gray-500">Tidak ada berita terkini saat ini.</p>
       </div>
     </div>
   </section>
@@ -22,66 +50,133 @@
 
 <script setup>
 import { ref, onMounted, onBeforeUnmount } from 'vue';
+import { beritaService } from '@/service/api.js';
 
-// Data dummy untuk item berita
-const newsItems = ref([
-  {
-    image: '/src/assets/img/berita1.jpg',
-    alt: 'Gambar Berita',
-    title: 'Wawali Gelar Rakor Jalang Charity & Sport Match 2025',
-    date: '17 Juli 2025',
-    isVisible: false,
-    delay: '0s',
-  },
-  {
-    image: '/src/assets/img/berita2.jpg',
-    alt: 'Gambar Berita',
-    title: 'Judul Berita Lainnya di Sini',
-    date: '16 Juli 2025',
-    isVisible: false,
-    delay: '0.2s', // Penundaan untuk muncul berurutan
-  },
-  {
-    image: '/src/assets/img/berita3.jpg',
-    alt: 'Gambar Berita',
-    title: 'Berita Terbaru Hari Ini',
-    date: '15 Juli 2025',
-    isVisible: false,
-    delay: '0.2s', // Penundaan untuk muncul berurutan
-  },
-  // Tambahkan item berita lainnya jika diperlukan
-]);
-
+// Reactive data
+const newsItems = ref([]);
+const loading = ref(false);
 let observers = [];
 
-onMounted(() => {
-  const cards = document.querySelectorAll('.news-card');
-
-  cards.forEach((card, index) => {
-    // Hitung penundaan berdasarkan indeks untuk penampilan berurutan
-    newsItems.value[index].delay = `${index * 0.30}s`;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            // Kartu masuk ke dalam viewport
-            newsItems.value[index].isVisible = true;
-          } else {
-            // Kartu keluar dari viewport (baik ke atas maupun ke bawah)
-            newsItems.value[index].isVisible = false;
-          }
-        });
+// Fetch news from API
+const fetchNews = async () => {
+  try {
+    loading.value = true;
+    const response = await beritaService.getLatestBerita();
+    const newsData = response.data || [];
+    
+    // Transform data to match component structure
+    newsItems.value = newsData.map((news, index) => ({
+      id: news.id,
+      judul: news.judul,
+      gambar: news.gambar,
+      created_at: news.created_at,
+      category: news.category,
+      slug: news.slug,
+      isVisible: false,
+      delay: `${index * 0.30}s`,
+    }));
+  } catch (error) {
+    console.error('Error fetching news:', error);
+    // Fallback to dummy data if API fails
+    newsItems.value = [
+      {
+        id: 1,
+        judul: 'Wawali Gelar Rakor Jalang Charity & Sport Match 2025',
+        gambar: '/src/assets/img/berita1.jpg',
+        created_at: '2025-07-17',
+        category: 'Berita',
+        isVisible: false,
+        delay: '0s',
       },
       {
-        root: null, // relatif terhadap viewport
-        rootMargin: '0px',
-        threshold: 0.1, // Pemicu ketika 10% kartu terlihat
-      }
-    );
-    observer.observe(card);
-    observers.push(observer);
+        id: 2,
+        judul: 'Judul Berita Lainnya di Sini',
+        gambar: '/src/assets/img/berita2.jpg',
+        created_at: '2025-07-16',
+        category: 'Informasi',
+        isVisible: false,
+        delay: '0.2s',
+      },
+      {
+        id: 3,
+        judul: 'Berita Terbaru Hari Ini',
+        gambar: '/src/assets/img/berita3.jpg',
+        created_at: '2025-07-15',
+        category: 'Berita',
+        isVisible: false,
+        delay: '0.4s',
+      },
+    ];
+  } finally {
+    loading.value = false;
+  }
+};
+
+// Format date
+const formatDate = (dateString) => {
+  if (!dateString) return '';
+  const date = new Date(dateString);
+  return date.toLocaleDateString('id-ID', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric'
   });
+};
+
+// Get image URL
+const getImageUrl = (imagePath) => {
+  if (!imagePath) return null;
+  // If it's already a full URL, return as is
+  if (imagePath.startsWith('http')) {
+    return imagePath;
+  }
+  // Otherwise, construct the full URL
+  return `http://localhost:8000/storage/${imagePath}`;
+};
+
+// Handle news click
+const handleNewsClick = (news) => {
+  if (news.slug) {
+    // Navigate to news detail page
+    window.location.href = `/berita/${news.slug}`;
+  }
+};
+
+onMounted(() => {
+  // Fetch news data
+  fetchNews();
+  
+  // Set up intersection observers after data is loaded
+  setTimeout(() => {
+    const cards = document.querySelectorAll('.news-card');
+    
+    cards.forEach((card, index) => {
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              // Kartu masuk ke dalam viewport
+              if (newsItems.value[index]) {
+                newsItems.value[index].isVisible = true;
+              }
+            } else {
+              // Kartu keluar dari viewport
+              if (newsItems.value[index]) {
+                newsItems.value[index].isVisible = false;
+              }
+            }
+          });
+        },
+        {
+          root: null,
+          rootMargin: '0px',
+          threshold: 0.1,
+        }
+      );
+      observer.observe(card);
+      observers.push(observer);
+    });
+  }, 100); // Small delay to ensure DOM is ready
 });
 
 onBeforeUnmount(() => {
@@ -96,7 +191,7 @@ onBeforeUnmount(() => {
   background-color: #f8f8f8;
   padding: 80px 16px;
   position: relative;
-  z-index: 1; /* Pastikan di atas HeroSection (z-index: 0) */
+  z-index: 1;
   box-sizing: border-box;
 }
 
@@ -136,27 +231,21 @@ onBeforeUnmount(() => {
   border-radius: 8px;
   overflow: hidden;
   transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.5s ease,
-    transform 0.5s ease; /* Tambahkan opasitas dan transformasi ke transisi */
+    transform 0.5s ease;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
   display: flex;
   flex-direction: column;
+  cursor: pointer;
 
   /* Kondisi awal untuk animasi */
   opacity: 0;
-  transform: translateY(50px); /* Mulai dari bawah */
+  transform: translateY(50px);
 }
 
 .news-card.is-visible {
   opacity: 1;
-  transform: translateY(0); /* Pindah ke posisi aslinya */
+  transform: translateY(0);
 }
-
-/* Tambahan: Animasi ketika keluar dari viewport ke atas */
-/* Karena transform: translateY(50px) sudah ada di news-card,
-   saat is-visible dihilangkan, ia akan kembali ke kondisi tersebut. */
-/* Jika Anda ingin animasi menghilang ke atas lebih jauh atau berbeda,
-   Anda bisa tambahkan class terpisah untuk itu, tapi untuk saat ini,
-   kondisi awal news-card sudah cukup. */
 
 .news-card:hover {
   transform: translateY(-5px);
@@ -184,11 +273,26 @@ onBeforeUnmount(() => {
   font-weight: 600;
   color: #222;
   margin-bottom: 8px;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .news-date {
   font-size: 14px;
   color: #777;
+  margin-bottom: 4px;
+}
+
+.news-category {
+  font-size: 12px;
+  color: #2563eb;
+  background-color: #eff6ff;
+  padding: 2px 8px;
+  border-radius: 12px;
+  display: inline-block;
 }
 
 @media (max-width: 768px) {
@@ -207,6 +311,20 @@ onBeforeUnmount(() => {
   }
   .section-title {
     font-size: 20px;
+  }
+}
+
+/* Loading animation */
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: .5;
   }
 }
 </style>

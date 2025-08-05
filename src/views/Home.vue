@@ -7,19 +7,14 @@ import Kerjasama from "../components/landing/Kerjasama.vue";
 import NewsSection from "@/components/landing/NewsSection.vue";
 import ServiceSection from "@/components/landing/ServiceSection.vue";
 
-
-
-
 // state untuk simpan data
 const profils = ref([]);
 const agendas = ref([]);
-const beritas = ref([]);
 
 // ambil data ketika komponen muncul
 onMounted(() => {
   fetchProfils();
   fetchAgendas();
-  fetchBeritas();
 });
 
 const fetchProfils = () => {
@@ -39,17 +34,6 @@ const fetchAgendas = () => {
     })
     .catch((error) => console.error(error));
 };
-
-const fetchBeritas = () => {
-  axios
-    .get("http://127.0.0.1:8000/api/berita")
-    .then((response) => {
-      beritas.value = response.data;
-    })
-    .catch((error) => console.error(error));
-};
-
-
 </script>
 
 <template>
@@ -58,10 +42,7 @@ const fetchBeritas = () => {
   <NewsSection />
   <ServiceSection />
   <Kerjasama />
-
-
 </template>
 
 <style scoped>
-
 </style>

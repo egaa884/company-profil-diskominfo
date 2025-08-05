@@ -101,7 +101,7 @@ const navItems = ref([
     items: [
       { name: 'Berita Kominfo Madiun', link: '/berita' },
       { name: 'Madiun Today', link: 'https://madiuntoday.id/' },
-      { name: 'Kabar Warga', link: 'https://kominfo.madiunkota.go.id/kabarwarga' },
+      { name: 'Kabar Warga', link: '/kabarwarga' },
       { name: 'Arsip Berita', link: 'https://kominfo.madiunkota.go.id/arsipberita' },
       { name: 'Radio Suara Madiun', link: 'https://kominfo.madiunkota.go.id/radiosuara' },
       { name: 'Siaran Pers Madiun', link: 'https://kominfo.madiunkota.go.id/siaranpers' },
@@ -109,7 +109,7 @@ const navItems = ref([
     ]
   },
   { name: 'Profil', link: '/profil', type: 'link' },
-  { name: 'Layanan Pengaduan', link: '#', type: 'link' },
+  { name: 'Layanan Pengaduan', link: 'https://awaksigap.madiunkota.go.id/', type: 'link' },
   { name: 'FaQ', link: '#', type: 'link' },
   {
     name: 'Informasi Publik',

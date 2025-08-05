@@ -8,7 +8,7 @@
       poster="@/assets/img/ppid.jpg" >
       <source src="@/assets/video/video-drone-madiun.mp4" type="video/mp4"> Browser Anda tidak mendukung tag video.
     </video>
-<!-- asdxkadaed -->
+
     <div class="overlay-content">
       <div class="welcome-text-wrapper">
         <h1 class="welcome-text">Selamat Datang</h1>
